@@ -32,7 +32,7 @@ const CACHE_SPAWN_PROBABILITY = 0.1;
 
 const map = leaflet.map(document.getElementById("map")!, {
   center: OAKES_105,
-  zoom: 10,
+  zoom: 75,
 });
 
 leaflet
@@ -52,6 +52,32 @@ function createCache(i: number, j: number) {
 
   const rect = leaflet.rectangle(bounds);
   rect.addTo(map);
+  let coinCount = Math.floor(luck([i, j].toString()) * 100);
+  rect.bindPopup(() => {
+    const popupDiv = document.createElement("div");
+    popupDiv.innerHTML =
+      `<div>There is a cache here at "${i}, ${j}". It has <span id="value">${coinCount}</span> coins.</div>
+    <button id="collect">Collect</button><button id="dropoff">Drop Off</button>`;
+
+    popupDiv
+      .querySelector<HTMLButtonElement>("#collect")!
+      .addEventListener("click", () => {
+        if (coinCount > 0) {
+          coinCount--;
+          popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML =
+            coinCount.toString();
+        }
+      });
+    popupDiv
+      .querySelector<HTMLButtonElement>("#dropoff")!
+      .addEventListener("click", () => {
+        coinCount++;
+        popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML = coinCount
+          .toString();
+      });
+
+    return popupDiv;
+  });
 }
 
 for (let i = -NEIGHBORHOOD_SIZE; i < NEIGHBORHOOD_SIZE; i++) {
