@@ -1,5 +1,15 @@
-// todo
+// @deno-types="npm:@types/leaflet@^1.9.14"
+import leaflet from "leaflet";
+
+// Style sheets
+import "leaflet/dist/leaflet.css";
 import "./style.css";
+
+// Fix missing marker images
+import "./leafletWorkaround.ts";
+
+// Deterministic random number generator
+import luck from "./luck.ts";
 
 const APP_NAME = "Eye Collector";
 document.title = APP_NAME;
@@ -14,3 +24,40 @@ testButton.innerHTML = "Button";
 app.append(testButton);
 
 testButton.addEventListener("click", () => alert("You clicked the button!"));
+
+const OAKES_105 = leaflet.latLng(36.989537734448085, -122.06277874417984);
+const TILE_SIZE = 1e-4;
+const NEIGHBORHOOD_SIZE = 8;
+const CACHE_SPAWN_PROBABILITY = 0.1;
+
+const map = leaflet.map(document.getElementById("map")!, {
+  center: OAKES_105,
+  zoom: 10,
+});
+
+leaflet
+  .tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution:
+      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  })
+  .addTo(map);
+
+function createCache(i: number, j: number) {
+  const origin = OAKES_105;
+  const bounds = leaflet.latLngBounds([
+    [origin.lat + i * TILE_SIZE, origin.lng + j * TILE_SIZE],
+    [origin.lat + (i + 1) * TILE_SIZE, origin.lng + (j + 1) * TILE_SIZE],
+  ]);
+
+  const rect = leaflet.rectangle(bounds);
+  rect.addTo(map);
+}
+
+for (let i = -NEIGHBORHOOD_SIZE; i < NEIGHBORHOOD_SIZE; i++) {
+  for (let j = -NEIGHBORHOOD_SIZE; j < NEIGHBORHOOD_SIZE; j++) {
+    if (luck([i, j].toString()) < CACHE_SPAWN_PROBABILITY) {
+      createCache(i, j);
+    }
+  }
+}
