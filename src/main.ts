@@ -43,6 +43,16 @@ leaflet
   })
   .addTo(map);
 
+// Add a marker to represent the player
+const playerMarker = leaflet.marker(OAKES_105);
+playerMarker.bindTooltip("That's you!");
+playerMarker.addTo(map);
+
+// Display the player's points
+let playerCoins = 0;
+const statusPanel = document.querySelector<HTMLDivElement>("#statusPanel")!; // element `statusPanel` is defined in index.html
+statusPanel.innerHTML = "No coins yet...";
+
 function createCache(i: number, j: number) {
   const origin = OAKES_105;
   const bounds = leaflet.latLngBounds([
@@ -66,14 +76,21 @@ function createCache(i: number, j: number) {
           coinCount--;
           popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML =
             coinCount.toString();
+          playerCoins++;
+          statusPanel.innerHTML = `You have ${playerCoins} coins.`;
         }
       });
     popupDiv
       .querySelector<HTMLButtonElement>("#dropoff")!
       .addEventListener("click", () => {
-        coinCount++;
-        popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML = coinCount
-          .toString();
+        if (playerCoins > 0) {
+          coinCount++;
+          popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML =
+            coinCount
+              .toString();
+          playerCoins--;
+          statusPanel.innerHTML = `You have ${playerCoins} coins.`;
+        }
       });
 
     return popupDiv;
